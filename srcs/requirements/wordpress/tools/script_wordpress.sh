@@ -1,47 +1,22 @@
 #!bin/bash
 #set -eux
+if [ -f ./wp-config.php ]
+then
+	echo "wordpress already downloaded"
+else
 
-cd /var/www/html/wordpress
+####### MANDATORY PART ##########
 
-if ! wp core is-installed; then
-wp config create	--allow-root --dbname=${SQL_DATABASE} \
-			--dbuser=${SQL_USER} \
-			--dbpass=${SQL_PASSWORD} \
-			--dbhost=${SQL_HOST} \
-			--url=https://${DOMAIN_NAME};
+	#Download wordpress and all config file
+	wget http://wordpress.org/latest.tar.gz
+	tar xfz latest.tar.gz
+	mv wordpress/* .
+	rm -rf latest.tar.gz
+	rm -rf wordpress
 
-wp core install	--allow-root \
-			--url=https://${DOMAIN_NAME} \
-			--title=${SITE_TITLE} \
-			--admin_user=${ADMIN_USER} \
-			--admin_password=${ADMIN_PASSWORD} \
-			--admin_email=${ADMIN_EMAIL};
-
-wp user create		--allow-root \
-			${USER1_LOGIN} ${USER1_MAIL} \
-			--role=author \
-			--user_pass=${USER1_PASS} ;
-
-wp cache flush --allow-root
-
-# it provides an easy-to-use interface for creating custom contact forms and managing submissions, as well as supporting various anti-spam techniques
-wp plugin install contact-form-7 --activate
-
-# set the site language to English
-wp language core install en_US --activate
-
-# remove default themes and plugins
-wp theme delete twentynineteen twentytwenty
-wp plugin delete hello
-
-# set the permalink structure
-wp rewrite structure '/%postname%/'
-
-fi
-
-if [ ! -d /run/php ]; then
-	mkdir /run/php;
-fi
-
-# start the PHP FastCGI Process Manager (FPM) for PHP version 7.3 in the foreground
-exec /usr/sbin/php-fpm8.3 -F -R
+	#Inport env variables in the config file
+	sed -i "s/username_here/$SQL_USER/g" wp-config-sample.php
+	sed -i "s/password_here/$SQL_PASSWORD/g" wp-config-sample.php
+	sed -i "s/localhost/$SQL_HOSTNAME/g" wp-config-sample.php
+	sed -i "s/database_name_here/$SQL_DATABASE/g" wp-config-sample.php
+	cp wp-config-sample.php wp-config.php
