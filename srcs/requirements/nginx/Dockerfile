@@ -11,7 +11,7 @@ RUN apt-get update -y \
 	&& chmod 755 /var/www/html \
 	&& chown -R www-data:www-data /var/www/html
 
-COPY conf/nginx.conf /etc/nginx/ 
+COPY conf/nginx.conf /etc/nginx/
 
 EXPOSE 443
 
